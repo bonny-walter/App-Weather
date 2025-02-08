@@ -203,6 +203,48 @@ pipeline {
       slackSend (channel: '#all-weather-app', color: '#FF0000', message: " Application The_Weather_app   FAILURE:  Branch name  <<${env.BRANCH_NAME}>> Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})") 
       
     }
+
+    always {
+            // Send email after every build (success or failure)
+            emailext (
+                subject: "Build ${currentBuild.fullDisplayName} - ${currentBuild.currentResult}",
+                body: """
+                    The build has finished. 
+                    Build Status: ${currentBuild.currentResult}
+                    Check console output for details: ${env.BUILD_URL}
+                """,
+                to: 'jofranco1203@gmail.com', // Replace with recipient's email
+                from: 'jenkins@localhost.com' // Replace with the sender's email
+            )
+    }
+
+    success {
+            // Send email on successful build completion
+            emailext (
+                subject: "Success: Build ${currentBuild.fullDisplayName}",
+                body: """
+                    The build completed successfully. 
+                    Status: SUCCESS
+                    Check console output for details: ${env.BUILD_URL}
+                """,
+                to: 'jofranco1203@gmail.com',
+                from: 'jenkins@localhost.com'
+            )
+    }
+
+    failure {
+            // Send email on failure
+            emailext (
+                subject: "Failure: Build ${currentBuild.fullDisplayName}",
+                body: """
+                    The build failed. 
+                    Status: FAILURE
+                    Check console output for details: ${env.BUILD_URL}
+                """,
+                to: 'jofranco1203@gmail.com',
+                from: 'jenkins@localhost.com'
+            )
+    }
    
     cleanup {
       deleteDir()
