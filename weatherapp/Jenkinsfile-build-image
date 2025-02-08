@@ -193,14 +193,14 @@ pipeline {
    post {
    
    success {
-      slackSend (channel: '#development-alerts', color: 'good', message: "  Application The_Weather_app  with  tag name:\n auth:$AUTH\n   redis:$REDIS\n  db:$DB\n   ui:$UI\n   weather:$WEATHER\n  is available on Dockerhub :  Branch name  <<${env.BRANCH_NAME}>>  Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+      slackSend (channel: '#all-weather-app', color: 'good', message: "  Application The_Weather_app  with  tag name:\n auth:$AUTH\n   redis:$REDIS\n  db:$DB\n   ui:$UI\n   weather:$WEATHER\n  is available on Dockerhub :  Branch name  <<${env.BRANCH_NAME}>>  Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
       slackSend (channel: '#testing-alerts', color: 'good', message: "  Application The_Weather_app  with  tag name:\n auth:$AUTH\n   redis:$REDIS\n  db:$DB\n  ui:$UI\n   weather:$WEATHER\n  is available on Dockerhub :  Branch name  <<${env.BRANCH_NAME}>>  Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")  
     
     }
 
 
     failure {
-      slackSend (channel: '#development-alerts', color: '#FF0000', message: " Application The_Weather_app   FAILURE:  Branch name  <<${env.BRANCH_NAME}>> Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})") 
+      slackSend (channel: '#all-weather-app', color: '#FF0000', message: " Application The_Weather_app   FAILURE:  Branch name  <<${env.BRANCH_NAME}>> Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})") 
       
     }
    
