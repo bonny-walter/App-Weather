@@ -58,7 +58,7 @@ pipeline {
 
 			steps {
 				sh ''' 
-                bash weatherapp/build.sh $AUTH $DB $REDIS  $UI $WEATHER $TAG
+                bash $WORKSPACE/weatherapp/build.sh $AUTH $DB $REDIS  $UI $WEATHER $TAG
                 '''
 			}
 		}
@@ -75,8 +75,8 @@ pipeline {
 			steps {
 				sh '''
                 rm -rf * || true 
-                git clone -b develop  git@github.com:santonix/weather-app.git
-                cd weather-app
+                git clone -b develop  git@github.com:bonny-walter/App-Weather.git
+                cd App-Weather
                   '''
 			}
 		}
@@ -87,7 +87,7 @@ pipeline {
 
 			steps {
 				sh '''
-            cd weather-app/weatherapp/auth
+            cd App-Weather/weatherapp/auth
             docker build -t  santonix/weatherapp-auth:${AUTH} .
                   '''
 			}
@@ -110,7 +110,7 @@ pipeline {
 
 			steps {
 				sh '''
-            cd weather-app/weatherapp/db
+            cd App-Weather/weatherapp/db
             docker build -t santonix/weatherapp-db:${DB} .
                   '''
 			}
@@ -131,7 +131,7 @@ pipeline {
 
 			steps {
 				sh '''
-            cd /weatherapp/redis
+            cd App-Weather/weatherapp/redis
             docker build -t santonix/weatherapp-redis:${REDIS} .
                   '''
 			}
@@ -148,7 +148,7 @@ pipeline {
 
 			steps {
 				sh '''
-            cd /weatherapp/UI
+            cd App-Weather/weatherapp/UI
             docker build -t santonix/weatherapp-ui:${UI} .
 
                   '''
@@ -169,7 +169,7 @@ pipeline {
 
 			steps {
 				sh '''
-            cd weatherapp/weather
+            cd App-Weather/weatherapp/weather
             docker build -t santonix/weatherapp-weather:${WEATHER} .
                   '''
 			}
