@@ -1,0 +1,216 @@
+
+pipeline {
+    agent any 
+  environment {
+		DOCKERHUB_CREDENTIALS=credentials('dockerhub-access-credentials')
+	}
+    options {
+        buildDiscarder(logRotator(numToKeepStr: '3'))
+        disableConcurrentBuilds()
+        timeout(time: 30, unit: 'MINUTES') 
+        
+      }
+    stages {
+        stage('Setup parameters') {
+            steps {
+                script {
+                    properties([
+                        parameters([
+
+                             string(name: 'TAG',
+                             defaultValue: '',
+                            description: '''Enter the TAG that need to be clone from github  example 1.1.0'''),
+
+
+                             string(name: 'AUTH',
+                             defaultValue: '',
+                            description: '''Enter the AUTH service tag starting with v example v1.1.0 '''),
+
+
+                             string(name: 'DB',
+                             defaultValue: '',
+                            description: '''Enter the DB service tag with v example v1.1.0 '''),
+
+
+                             string(name: 'REDIS',
+                             defaultValue: '',
+                            description: '''Enter the REDIS  service tag with v example v1.1.0 '''),
+
+                             string(name: 'UI',
+                             defaultValue: '',
+                            description: '''Enter the UI  service tag with v example v1.1.0 '''),
+
+
+
+                             string(name: 'WEATHER',
+                             defaultValue: '',
+                            description: '''Enter the WEATHER  service tag with v example v1.1.0'''),
+                        ])
+                    ])
+                }
+            }
+        }
+
+
+
+
+    stage('check entry') {
+
+			steps {
+				sh ''' 
+                bash weatherapp/build.sh $AUTH $DB $REDIS  $UI $WEATHER $TAG
+                '''
+			}
+		}
+
+    stage('Login') {
+
+			steps {
+				sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
+			}
+		}
+
+    stage('cloning') {
+
+			steps {
+				sh '''
+                rm -rf * || true 
+                git clone -b develop  git@github.com:santonix/weather-app.git
+                cd weather-app
+                  '''
+			}
+		}
+
+
+
+    stage('build auth') {
+
+			steps {
+				sh '''
+            cd weather-app/weatherapp/auth
+            docker build -t  santonix/weatherapp-auth:${AUTH} .
+                  '''
+			}
+		}
+
+
+    stage('push  auth') {
+
+			steps {
+				sh '''
+
+            docker push santonix/weatherapp-auth:${AUTH} 
+                  '''
+			}
+		}
+
+
+
+    stage('build  db  ') {
+
+			steps {
+				sh '''
+            cd weather-app/weatherapp/db
+            docker build -t santonix/weatherapp-db:${DB} .
+                  '''
+			}
+		}
+
+    stage('push   db  ') {
+
+			steps {
+				sh '''
+
+            docker push santonix/weatherapp-db:${DB} 
+                  '''
+			}
+		}
+
+
+    stage('build redis ') {
+
+			steps {
+				sh '''
+            cd /weatherapp/redis
+            docker build -t santonix/weatherapp-redis:${REDIS} .
+                  '''
+			}
+		}
+    stage('push redis ') {
+
+			steps {
+				sh '''
+            docker push santonix/weatherapp-redis:${REDIS} 
+           '''
+			}
+		}
+    stage('build  UI ') {
+
+			steps {
+				sh '''
+            cd /weatherapp/UI
+            docker build -t santonix/weatherapp-ui:${UI} .
+
+                  '''
+			}
+		}
+
+
+    stage('push  UI ') {
+
+			steps {
+				sh '''
+            docker push  santonix/weatherapp-ui:${UI} 
+          '''
+			}
+		}
+
+      stage('build  weather ') {
+
+			steps {
+				sh '''
+            cd weatherapp/weather
+            docker build -t santonix/weatherapp-weather:${WEATHER} .
+                  '''
+			}
+		}
+
+      stage('push  weather ') {
+
+			steps {
+				sh '''
+            docker push  santonix/weatherapp-weather:${WEATHER} 
+           '''
+			}
+		}
+
+
+    }
+
+
+
+
+   post {
+   
+   success {
+      slackSend (channel: '#development-alerts', color: 'good', message: "  Application The_Weather_app  with  tag name:\n auth:$AUTH\n   redis:$REDIS\n  db:$DB\n   ui:$UI\n   weather:$WEATHER\n  is available on Dockerhub :  Branch name  <<${env.BRANCH_NAME}>>  Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+      slackSend (channel: '#testing-alerts', color: 'good', message: "  Application The_Weather_app  with  tag name:\n auth:$AUTH\n   redis:$REDIS\n  db:$DB\n  ui:$UI\n   weather:$WEATHER\n  is available on Dockerhub :  Branch name  <<${env.BRANCH_NAME}>>  Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")  
+    
+    }
+
+
+    failure {
+      slackSend (channel: '#development-alerts', color: '#FF0000', message: " Application The_Weather_app   FAILURE:  Branch name  <<${env.BRANCH_NAME}>> Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})") 
+      
+    }
+   
+    cleanup {
+      deleteDir()
+    }
+}
+
+
+
+
+}
+
