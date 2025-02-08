@@ -75,7 +75,7 @@ pipeline {
 			steps {
 				sh '''
                 rm -rf * || true 
-                git clone -b develop  git@github.com:bonny-walter/App-Weather.git
+                git clone -b dev  git@github.com:bonny-walter/App-Weather.git
                 cd App-Weather
                   '''
 			}
