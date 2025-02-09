@@ -79,8 +79,8 @@ pipeline {
         scannerHome='/opt/sonar-scanner'
     }
             steps{
-                withSonarQubeEnv('sonar server') {
-                                 withCredentials([string(credentialsId: 'sonar-token')]) {
+                withSonarQubeEnv('sonarcloud') {
+                                 withCredentials([string(credentialsId: 'jenkins-sonarcloud')]) {
                         sh "${SCANNER_HOME}/bin/sonar-scanner "
                     }
                      
