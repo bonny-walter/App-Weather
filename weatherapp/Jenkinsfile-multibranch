@@ -3,12 +3,11 @@ pipeline {
     agent any
 
     environment {
-       JAVA_HOME = '/usr/lib/jvm/java-17-openjdk-amd64' // Adjust the path based on your installation
-        
-        SONAR_SCANNER_HOME = '/var/opt/sonar-scanner-4.5.0.2216-linux' // Path to SonarScanner
+        SONAR_SCANNER_HOME = '/var/opt/sonar-scanner-4.5.0.2216-linux'
         DOCKERHUB_CREDENTIALS = credentials('dockerhub-access-credentials')
-        SONAR_TOKEN = credentials('sonar-token') // Reference the Jenkins credential ID
-        PATH = "${SONAR_SCANNER_HOME}/bin:${env.PATH}" // Ensure the scanner is in the PATH
+        SONAR_TOKEN = credentials('sonar-token')
+        JAVA_HOME = '/usr/lib/jvm/java-17-openjdk-amd64' // Adjust this path based on your installation
+        PATH = "${SONAR_SCANNER_HOME}/bin:${JAVA_HOME}/bin:${env.PATH}"
     }
 
     options {
