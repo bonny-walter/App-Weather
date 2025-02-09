@@ -173,7 +173,9 @@ pipeline {
                  body: "Unfortunately, the build has failed. Details can be found at: ${env.BUILD_URL}"
         }
         cleanup {
-            deleteDir()
+            node {
+                deleteDir()  // Ensure cleanup is done in a node context
+            }
         }
     }
 }
