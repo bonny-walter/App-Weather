@@ -3,6 +3,7 @@ pipeline {
     agent any
   environment {
 		DOCKERHUB_CREDENTIALS=credentials('dockerhub-access-credentials')
+                SONAR_TOKEN = credentials('jenkins-sonarcloud') // Reference the Jenkins credential ID
 	}
     options {
         buildDiscarder(logRotator(numToKeepStr: '3'))
