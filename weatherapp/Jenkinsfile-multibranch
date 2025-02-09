@@ -72,25 +72,22 @@ pipeline {
         }
 
 
-         stage('SonarQube Analysis') {
-	    steps {
-	        script {
-	            withSonarQubeEnv('sonarcloud') {
-	                withCredentials([string(credentialsId: 'jenkins-sonarcloud')]) {
-	                    // Run the SonarQube scanner with parameters
-	                    sh '''
-	                        sonar-scanner \
-	                        -Dsonar.projectKey=bonny-walter_App-Weather \
-	                        -Dsonar.projectName=App-Weather \
-	                        -Dsonar.projectVersion=1.0.0 \
-	                        -Dsonar.sources=. \
-	                        -Dsonar.host.url=https://sonarcloud.io \
-	                        -Dsonar.login=$SONAR_TOKEN
-	                    '''
+         stage('SonarQube analysis') {
+           
+               environment {
+	        CI = 'true'
+	        //  scannerHome = tool 'sonar scanner'
+	        scannerHome='/var/opt/sonar-scanner'
+	    }
+	            steps{
+	                withSonarQubeEnv('sonar server') {
+	                                 withCredentials([string(credentialsId: 'sonar-token')]) {
+	                        sh "${SCANNER_HOME}/bin/sonar-scanner "
+	                    }
+	                     
+	                   
 	                }
 	            }
-	        }
-	    }
 	}
 
 
