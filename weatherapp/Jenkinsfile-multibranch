@@ -178,12 +178,13 @@ pipeline {
                  subject: "Build Failed: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
                  body: "Unfortunately, the build has failed. Details can be found at: ${env.BUILD_URL}"
         }
+        cleanup {
+          deleteDir()
+        }    
     }
    
    
-    cleanup {
-      deleteDir()
-    }
+    
 }
 
 
