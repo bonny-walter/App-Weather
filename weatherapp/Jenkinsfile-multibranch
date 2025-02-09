@@ -74,26 +74,24 @@ pipeline {
         }
 
 
-         stage('SonarQube Analysis') {
-            steps {
-                script {
-                    // Create sonar-project.properties file
-                    writeFile file: 'sonar-project.properties', text: '''
-                        sonar.projectKey=app-weather
-                        sonar.projectName=app-weather
-                        sonar.projectVersion=1.0.0
-                        sonar.sources=.
-                        sonar.sourceEncoding=UTF-8
-                    '''
-                    
-                    // Run the SonarScanner
-                    sh '''
-                        sonar-scanner \
-                        -Dsonar.login=$SONAR_TOKEN
-                    '''
+         stage('SonarQube analysis') {
+           
+               environment {
+        CI = 'true'
+        //  scannerHome = tool 'sonar scanner'
+        scannerHome='/var/opt/sonar-scanner-4.5.0.2216-linux'
+    }
+            steps{
+                withSonarQubeEnv('sonar server') {
+                                 withCredentials([string(credentialsId: 'sonar-token')]) {
+                        sh "${SCANNER_HOME}/bin/sonar-scanner "
+                    }
+                     
+                   
                 }
             }
         }
+
 
 
 
