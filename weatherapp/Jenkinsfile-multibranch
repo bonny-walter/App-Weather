@@ -70,15 +70,27 @@ pipeline {
             }
         }
 
-        stage('SonarQube analysis') {
+        stage('SonarQube Analysis') {
             steps {
-                withSonarQubeEnv('sonar server') {
-                    withCredentials([string(credentialsId: 'sonar-token')]) {
-                        sh '${SONAR_SCANNER_HOME}/bin/sonar-scanner -Dsonar.login=${SONAR_TOKEN}'
-                    }
+                script {
+                    // Create sonar-project.properties file
+                    writeFile file: 'sonar-project.properties', text: '''
+                        sonar.projectKey=app-weather
+                        sonar.projectName=app-weather
+                        sonar.projectVersion=1.0
+                        sonar.sources=app-weather
+                        sonar.sourceEncoding=UTF-8
+                    '''
+                    
+                    // Run the SonarScanner
+                    sh '''
+                        sonar-scanner \
+                        -Dsonar.login=$SONAR_TOKEN
+                    '''
                 }
             }
         }
+
 
         stage("Quality Gate") {
             steps {
