@@ -3,6 +3,7 @@ pipeline {
     agent any
     tools {
       jdk 'jdk17'
+      SonarQube Scanner 'sonar-scanner'
     }
     environment {
         SONAR_SCANNER_HOME = '/var/opt/sonar-scanner-4.5.0.2216-linux'
