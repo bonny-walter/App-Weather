@@ -1,129 +1,113 @@
 
 pipeline {
     agent any
+
     environment {
-      SONAR_SCANNER_HOME = '/var/opt/sonar-scanner-4.5.0.2216-linux' // Adjust this path to where SonarScanner is installed
-      DOCKERHUB_CREDENTIALS=credentials('dockerhub-access-credentials')
-      SONAR_TOKEN = credentials('sonar-token') // Reference the Jenkins credential ID
-      PATH = "${SONAR_SCANNER_HOME}/bin:${env.PATH}" // Ensure the scanner is in the PATH
+        SONAR_SCANNER_HOME = '/var/opt/sonar-scanner-4.5.0.2216-linux' // Path to SonarScanner
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub-access-credentials')
+        SONAR_TOKEN = credentials('sonar-token') // Reference the Jenkins credential ID
+        PATH = "${SONAR_SCANNER_HOME}/bin:${env.PATH}" // Ensure the scanner is in the PATH
     }
+
     options {
         buildDiscarder(logRotator(numToKeepStr: '3'))
         disableConcurrentBuilds()
-        timeout (time: 60, unit: 'MINUTES')
-       
+        timeout(time: 60, unit: 'MINUTES')
     }
+
     stages {
-
-
-
-
-        stage ('checkout') {
-	      steps {
-		checkout scmGit(branches: [[name: '**']], extensions: [], userRemoteConfigs: [[credentialsId: 'git-jenkins-private-key', url: 'https://github.com/bonny-walter/App-Weather.git']])
-	      }
-        }
- 
-        stage('Test auth') {
-	     agent {
-            docker {
-              image 'golang:alpine'
-              args '-u root:root'
+        stage('Checkout') {
+            steps {
+                checkout scmGit(branches: [[name: '**']], extensions: [], userRemoteConfigs: [[credentialsId: 'git-jenkins-private-key', url: 'https://github.com/bonny-walter/App-Weather.git']])
             }
-           }
+        }
+
+        stage('Test auth') {
+            agent {
+                docker {
+                    image 'golang:alpine'
+                    args '-u root:root'
+                }
+            }
             steps {
                 sh '''
-            id
-            cd weatherapp/auth/src/main
-            go build 
-            cd -
-            ls -la
+                    id
+                    cd weatherapp/auth/src/main
+                    go build 
+                    cd -
+                    ls -la
                 '''
             }
         }
 
-
         stage('Test UI') {
-	     agent {
-            docker {
-              image 'node:17'
-              args '-u root:root'
+            agent {
+                docker {
+                    image 'node:17'
+                    args '-u root:root'
+                }
             }
-           }
             steps {
                 sh '''
-            cd weatherapp/UI
-            npm run
+                    cd weatherapp/UI
+                    npm run
                 '''
             }
         }
 
         stage('Test weather') {
-	     agent {
-            docker {
-              image 'python:3.8-slim-buster'
-              args '-u root:root'
+            agent {
+                docker {
+                    image 'python:3.8-slim-buster'
+                    args '-u root:root'
+                }
             }
-           }
             steps {
                 sh '''
-            cd weatherapp/weather
-            pip3 install -r requirements.txt
+                    cd weatherapp/weather
+                    pip3 install -r requirements.txt
                 '''
             }
         }
 
-
-         stage('SonarQube analysis') {
-           
-               environment {
-        CI = 'true'
-        //  scannerHome = tool 'sonar scanner'
-       SONAR_SCANNER_HOME = '/var/opt/sonar-scanner-4.5.0.2216-linux'
-    }
-            steps{
+        stage('SonarQube analysis') {
+            steps {
                 withSonarQubeEnv('sonar server') {
-                                 withCredentials([string(credentialsId: 'sonar-token')]) {
-                        sh "${SONAR_SCANNER_HOME}/bin/sonar-scanner "
+                    withCredentials([string(credentialsId: 'sonar-token')]) {
+                        sh '${SONAR_SCANNER_HOME}/bin/sonar-scanner -Dsonar.login=${SONAR_TOKEN}'
                     }
-                     
-                   
                 }
             }
         }
 
-
-
-
         stage("Quality Gate") {
             steps {
                 timeout(time: 1, unit: 'HOURS') {
-                waitForQualityGate abortPipeline: true }
+                    waitForQualityGate abortPipeline: true
+                }
             }
         }
 
-    stage('Login') {
-
-			steps {
-				sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
-			}
-		}
+        stage('Login') {
+            steps {
+                sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
+            }
+        }
 
         stage('Build auth') {
             steps {
                 sh '''
-            cd weatherapp/auth
-            docker build -t santonix/weatherapp-auth:${BUILD_NUMBER} .
+                    cd weatherapp/auth
+                    docker build -t santonix/weatherapp-auth:${BUILD_NUMBER} .
                 '''
             }
         }
 
-
         stage('Build UI') {
             steps {
                 sh '''
-            cd weatherapp/UI
-            docker build -t santonix/weatherapp-ui:${BUILD_NUMBER} .
+                    cd weatherapp/UI
+                    docker build -t santonix/weatherapp-ui:${BUILD_NUMBER} .
                 '''
             }
         }
@@ -131,8 +115,8 @@ pipeline {
         stage('Build Weather') {
             steps {
                 sh '''
-            cd weatherapp/weather
-            docker build -t santonix/weatherapp-weather:${BUILD_NUMBER} .
+                    cd weatherapp/weather
+                    docker build -t santonix/weatherapp-weather:${BUILD_NUMBER} .
                 '''
             }
         }
@@ -140,56 +124,43 @@ pipeline {
         stage('Build Redis') {
             steps {
                 sh '''
-            cd weatherapp/redis
-            docker build -t santonix/weatherapp-redis:${BUILD_NUMBER} .
+                    cd weatherapp/redis
+                    docker build -t santonix/weatherapp-redis:${BUILD_NUMBER} .
                 '''
             }
         }
-
 
         stage('Build db') {
             steps {
                 sh '''
-            cd weathesantonixrapp/db
-            docker build -t devopseasylearning/weatherapp-db:${BUILD_NUMBER} .
+                    cd weatherapp/db
+                    docker build -t devopseasylearning/weatherapp-db:${BUILD_NUMBER} .
                 '''
             }
         }
-
-
-
-
     }
 
     post {
         success {
             script {
-                // Slack notification
                 slackSend(channel: '#all-weather-app', message: "Build succeeded: ${env.JOB_NAME} #${env.BUILD_NUMBER}")
             }
-            // Email notification
             mail to: 'jofranco1203@gmail.com',
                  subject: "Build Succeeded: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
                  body: "Good news! The build was successful. Check it out at: ${env.BUILD_URL}"
         }
         failure {
             script {
-                // Slack notification
                 slackSend(channel: '#all-weather-app', message: "Build failed: ${env.JOB_NAME} #${env.BUILD_NUMBER}")
             }
-            // Email notification
             mail to: 'jofranco1203@gmail.com',
                  subject: "Build Failed: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
                  body: "Unfortunately, the build has failed. Details can be found at: ${env.BUILD_URL}"
         }
         cleanup {
-          deleteDir()
-        }    
+            deleteDir()
+        }
     }
-   
-   
-    
 }
-
 
 
