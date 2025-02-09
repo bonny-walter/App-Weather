@@ -79,12 +79,12 @@ pipeline {
                environment {
         CI = 'true'
         //  scannerHome = tool 'sonar scanner'
-        scannerHome='/var/opt/sonar-scanner-4.5.0.2216-linux'
+       SONAR_SCANNER_HOME = '/var/opt/sonar-scanner-4.5.0.2216-linux'
     }
             steps{
                 withSonarQubeEnv('sonar server') {
                                  withCredentials([string(credentialsId: 'sonar-token')]) {
-                        sh "${SCANNER_HOME}/bin/sonar-scanner "
+                        sh "${SONAR_SCANNER_HOME}/bin/sonar-scanner "
                     }
                      
                    
