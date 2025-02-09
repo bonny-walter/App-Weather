@@ -1,17 +1,18 @@
 
 pipeline {
     agent any
-  environment {
-                SCANNER_HOME = '/var/opt/sonar-scanner-4.5.0.2216-linux' // Adjust this path to where SonarScanner is installed
-		DOCKERHUB_CREDENTIALS=credentials('dockerhub-access-credentials')
-                SONAR_TOKEN = credentials('jenkins-sonarcloud') // Reference the Jenkins credential ID
-	}
+    environment {
+      SCANNER_HOME = '/var/opt/sonar-scanner-4.5.0.2216-linux' // Adjust this path to where SonarScanner is installed
+      DOCKERHUB_CREDENTIALS=credentials('dockerhub-access-credentials')
+      SONAR_TOKEN = credentials('jenkins-sonarcloud') // Reference the Jenkins credential ID
+      PATH = "${SONAR_SCANNER_HOME}/bin:${env.PATH}" // Ensure the scanner is in the PATH
+    }
     options {
         buildDiscarder(logRotator(numToKeepStr: '3'))
         disableConcurrentBuilds()
         timeout (time: 60, unit: 'MINUTES')
        
-      }
+    }
     stages {
 
 
