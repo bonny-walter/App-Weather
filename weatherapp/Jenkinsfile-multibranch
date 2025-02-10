@@ -1,58 +1,163 @@
 pipeline {
     agent any
-    tools {
-      jdk 'jdk17'
-      
-    }
-    environment {
-        DOCKERHUB_CREDENTIALS = credentials('dockerhub-access-credentials')
-        SONAR_TOKEN = credentials('sonar-token')
-    }
-
+  environment {
+		DOCKERHUB_CREDENTIALS=credentials('jenkins-vivo-dockerhub')
+	}
     options {
-        buildDiscarder(logRotator(numToKeepStr: '3'))
+        buildDiscarder(logRotator(numToKeepStr: '5'))
         disableConcurrentBuilds()
-    }
-
+        timeout (time: 60, unit: 'MINUTES')
+        timestamps()
+      }
     stages {
-        stage('Checkout') {
+       stage('clean workspace'){
+            steps{
+                cleanWs()
+            }
+       }
+       stage ('checkout') {
+          steps {
+            checkout scmGit(branches: [[name: 'dev']], extensions: [], userRemoteConfigs: [[credentialsId: 'git-jenkins-private-key', url: 'https://github.com/bonny-walter/App-Weather.git']])
+          }
+        }
+
+
+
+ 
+        stage('Test auth') {
+	     agent {
+            docker {
+              image 'golang:alpine'
+              args '-u root:root'
+            }
+           }
             steps {
-                checkout scmGit(branches: [[name: 'main']], extensions: [], userRemoteConfigs: [[credentialsId: 'git-jenkins-private-key', url: 'https://github.com/bonny-walter/App-Weather.git']])
+                sh '''
+            id
+            cd weatherapp/auth/src/main
+            go build 
+            cd -
+            ls -la
+                '''
             }
         }
 
-        stage('Test auth') {
-            agent {
-                docker {
-                    image 'golang:alpine'
-                    args '-u 1000:1000'
+
+        stage('Test UI') {
+	     agent {
+            docker {
+              image 'node:17'
+              args '-u root:root'
+            }
+           }
+            steps {
+                sh '''
+            cd weatherapp/UI
+            npm run
+                '''
+            }
+        }
+
+        stage('Test weather') {
+	     agent {
+            docker {
+              image 'python:3.8-slim-buster'
+              args '-u root:root'
+            }
+           }
+            steps {
+                sh '''
+            cd weatherapp/weather
+            pip3 install -r requirements.txt
+                '''
+            }
+        }
+
+
+         stage('SonarQube analysis') {
+           
+               environment {
+        CI = 'true'
+          scannerHome = tool 'sonar scanner'
+        // scannerHome='/opt/sonar-scanner'
+    }
+            steps{
+                withSonarQubeEnv('sonar server') {
+                                 withCredentials([string(credentialsId: 'sonar-token')]) {
+                        sh "${SCANNER_HOME}/bin/sonar-scanner "
+                    }
+                     
+                   
                 }
             }
+        }
+
+
+
+        stage("Quality Gate") {
+            steps {
+                timeout(time: 1, unit: 'HOURS') {
+                waitForQualityGate abortPipeline: true }
+            }
+        }
+
+    stage('Login') {
+
+			steps {
+				sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
+			}
+		}
+
+        stage('Build auth') {
             steps {
                 sh '''
-                    set -e
-                    id
-                    cd weatherapp/auth/src/main
-                    go build -o auth
-                    ./auth
-                    cd -
-                    ls -la
+            cd $WORKSPACE/weatherapp/auth
+            docker build -t santonix/weatherapp-auth:${BUILD_NUMBER} .
                 '''
             }
         }
 
-        // ... (rest of the stages with similar improvements)
 
-        stage('SonarQube Analysis') {
+        stage('Build UI') {
             steps {
                 sh '''
-                    sonar-scanner \
-                        -Dsonar.login=$SONAR_TOKEN
+            cd $WORKSPACE/weatherapp/UI
+            docker build -t santonix/weatherapp-ui:${BUILD_NUMBER} .
                 '''
             }
         }
 
-        // ... (rest of the stages)
+        stage('Build Weather') {
+            steps {
+                sh '''
+            cd $WORKSPACE/weatherapp/weather
+            docker build -t santonix/weatherapp-weather:${BUILD_NUMBER} .
+                '''
+            }
+        }
+
+        stage('Build Redis') {
+            steps {
+                sh '''
+            cd $WORKSPACE/weatherapp/redis
+            docker build -t santonix/weatherapp-redis:${BUILD_NUMBER} .
+                '''
+            }
+        }
+
+
+        stage('Build db') {
+            steps {
+                sh '''
+            cd $WORKSPACE/weathesantonixrapp/db
+            docker build -t devopseasylearning/weatherapp-db:${BUILD_NUMBER} .
+                '''
+            }
+        }
+
+
+
+
     }
 
     post {
