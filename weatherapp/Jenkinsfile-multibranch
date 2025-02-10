@@ -1,6 +1,7 @@
 pipeline {
     agent any
   environment {
+        SCANNER_HOME = tool 'sonar-scanner'
 		DOCKERHUB_CREDENTIALS=credentials('dockerhub-access-credentials')
 	}
     options {
