@@ -1,8 +1,11 @@
 pipeline {
     agent any
   environment {
-        SCANNER_HOME = tool 'sonar-scanner'
-		DOCKERHUB_CREDENTIALS=credentials('dockerhub-access-credentials')
+        SONAR_SCANNER_HOME = tool 'sonar-scanner'
+        SONAR_HOST_URL = 'http://192.168.1.63:9000/'
+        SONAR_PROJECT_KEY = 'app-weather'
+        
+	DOCKERHUB_CREDENTIALS=credentials('dockerhub-access-credentials')
 	}
     options {
         buildDiscarder(logRotator(numToKeepStr: '5'))
