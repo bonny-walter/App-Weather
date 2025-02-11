@@ -17,7 +17,7 @@ pipeline {
                     properties([
                         parameters([
                         choice(
-                              choices: ["Devops", "Development"], 
+                              choices: ["Devops", "Dev"], 
                               name: 'NOTIFY'
                            
                                 ),
@@ -55,7 +55,7 @@ pipeline {
 
 			steps {
 				sh ''' 
-                bash $WORKSPACE/weatherapp/qa.sh $AUTH $DB $REDIS  $UI $WEATHER 
+                bash weatherapp/qa.sh $AUTH $DB $REDIS  $UI $WEATHER 
                 '''
 			}
 		}
@@ -63,7 +63,7 @@ pipeline {
     stage('notify Development team ') {
       when{      
           expression {
-            env.NOTIFY == 'Development' }
+            env.NOTIFY == 'Dev' }
           
             }
             steps {
@@ -102,7 +102,7 @@ pipeline {
     }
 
     failure {
-      slackSend (channel: '#development-alerts', color: '#FF0000', message: " QA TESTS HAVE FAIL please contact QA team for more details, Application The_Weather_app  with  tag name\n auth:$AUTH\n   redis:$REDIS\n  db:$DB\n   ui:$UI\n   weather:$WEATHER\n   FAILURE:  Branch name  <<${env.BRANCH_NAME}>> Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})") 
+      slackSend (channel: '#dev-alerts', color: '#FF0000', message: " QA TESTS HAVE FAIL please contact QA team for more details, Application The_Weather_app  with  tag name\n auth:$AUTH\n   redis:$REDIS\n  db:$DB\n   ui:$UI\n   weather:$WEATHER\n   FAILURE:  Branch name  <<${env.BRANCH_NAME}>> Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})") 
       
     }
 
