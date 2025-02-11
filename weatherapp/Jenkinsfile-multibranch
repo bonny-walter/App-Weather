@@ -106,7 +106,7 @@ pipeline {
         stage('Build auth') {
             steps {
                 sh '''
-            cd $WORKSPACE/weatherapp/auth
+            cd weatherapp/auth
             docker build -t santonix/weatherapp-auth:${BUILD_NUMBER} .
                 '''
             }
@@ -116,7 +116,7 @@ pipeline {
         stage('Build UI') {
             steps {
                 sh '''
-            cd $WORKSPACE/weatherapp/UI
+            cd weatherapp/UI
             docker build -t santonix/weatherapp-ui:${BUILD_NUMBER} .
                 '''
             }
@@ -125,7 +125,7 @@ pipeline {
         stage('Build Weather') {
             steps {
                 sh '''
-            cd $WORKSPACE/weatherapp/weather
+            cd weatherapp/weather
             docker build -t santonix/weatherapp-weather:${BUILD_NUMBER} .
                 '''
             }
@@ -134,7 +134,7 @@ pipeline {
         stage('Build Redis') {
             steps {
                 sh '''
-            cd $WORKSPACE/weatherapp/redis
+            cd weatherapp/redis
             docker build -t santonix/weatherapp-redis:${BUILD_NUMBER} .
                 '''
             }
@@ -144,8 +144,8 @@ pipeline {
         stage('Build db') {
             steps {
                 sh '''
-            cd $WORKSPACE/weathesantonixrapp/db
-            docker build -t devopseasylearning/weatherapp-db:${BUILD_NUMBER} .
+            cd weathesantonixrapp/db
+            docker build -t santonix/weatherapp-db:${BUILD_NUMBER} .
                 '''
             }
         }
