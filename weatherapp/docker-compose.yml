@@ -1,77 +1,81 @@
 version: '3.5'
-  services:
-    db:
-      container_name: weatherapp-db
-      image: santonix/weatherapp-db:${DB}
-      environment:
-        MYSQL_ROOT_PASSWORD: ${WEATHERAPP_MYSQL_ROOT_PASSWORD}
-      volumes:
-        - db-data:/var/lib/mysql
-      networks:   
-        - weatherapp
-      restart: always
+
+services:
+  db:
+    container_name: weatherapp-db
+    image: santonix/weatherapp-db:${DB}
+    environment:
+      MYSQL_ROOT_PASSWORD: ${WEATHERAPP_MYSQL_ROOT_PASSWORD}
+    volumes:
+      - db-data:/var/lib/mysql
+    networks:
+      - weatherapp
+    restart: always
+
+  redis:
+    container_name: weatherapp-redis
+    image: santonix/weatherapp-redis:${REDIS}
+    networks:
+      - weatherapp
+    environment:
+      REDIS_USER: redis
+      REDIS_PASSWORD: ${WEATHERAPP_REDIS_PASSWORD}
+    volumes:
+      - redis-data:/data
+    restart: always
+
+  weather:
+    container_name: weatherapp-weather
+    image: santonix/weatherapp-weather:${WEATHER}
+    expose:
+      - 5000
+    environment:
+      APIKEY: ${WEATHERAPP_APIKEY}
+    networks:
+      - weatherapp
+    restart: always
+    depends_on:
+      - db
+      - redis  # Weather depends on both db and redis
+
+  auth:
+    container_name: weatherapp-auth
+    image: santonix/weatherapp-auth:${AUTH}
+    environment:
+      DB_HOST: db
+      DB_PASSWORD: ${WEATHERAPP_DB_PASSWORD}
+    expose:
+      - 8081
+    networks:
+      - weatherapp
+    restart: always
+    depends_on:
+      - weather  # Auth depends on the weather service
+
+  ui:
+    container_name: weatherapp-ui
+    image: santonix/weatherapp-ui:${UI}
+    environment:
+      AUTH_HOST: auth
+      AUTH_PORT: 8081
+      WEATHER_HOST: weather
+      WEATHER_PORT: 5000
+      REDIS_USER: redis
+      REDIS_PASSWORD: ${WEATHERAPP_REDIS_PASSWORD}
+    expose:
+      - 3000
+    ports:
+      - 3000:3000
+    networks:
+      - weatherapp
+    restart: always
+    depends_on:
+      - auth  # UI depends on Auth
+
+networks:
+  weatherapp:
+
+volumes:
+  db-data:
+  redis-data:
   
-    redis:
-      container_name: weatherapp-redis
-      image: santonix/weatherapp-redis:${REDIS}
-      networks:
-        - weatherapp
-      environment:
-        REDIS_USER: redis
-        REDIS_PASSWORD: ${WEATHERAPP_REDIS_PASSWORD}
-      volumes:
-        - redis-data:/data
-      restart: always
-  
-    weather:
-      container_name: weatherapp-weather
-      image: santonix/weatherapp-weather:${WEATHER}
-      expose:
-        - 5000
-      environment:
-        APIKEY: ${WEATHERAPP_APIKEY}
-      networks:
-        - weatherapp
-      restart: always
-      depends_on:
-        - db
-        - redis  # Weather depends on both db and redis
-    auth:
-      container_name: weatherapp-auth
-      image: santonix/weatherapp-auth:${AUTH}
-      environment:
-        DB_HOST: db
-        DB_PASSWORD: ${WEATHERAPP_DB_PASSWORD}
-      expose:
-        - 8081
-      networks:
-        - weatherapp
-      restart: always
-      depends_on:
-        - weather  # Auth depends on the weather service
-  
-    ui:
-      container_name: weatherapp-ui
-      image: santonix/weatherapp-ui:${UI}
-      environment:
-       AUTH_HOST: auth
-       AUTH_PORT: 8081
-       WEATHER_HOST: weather
-       WEATHER_PORT: 5000
-       REDIS_USER: redis
-       REDIS_PASSWORD: ${WEATHERAPP_REDIS_PASSWORD}
-      expose:
-        - 3000
-      ports:
-        - 3000:3000
-      networks:
-        - weatherapp
-      restart: always
-      depends_on:
-        - auth  # UI depends on Auth
-  networks:
-    weatherapp:
-  
-  volumes:
-    db-data:
-    redis-data:
