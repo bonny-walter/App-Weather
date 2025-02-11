@@ -144,7 +144,7 @@ pipeline {
         stage('Build db') {
             steps {
                 sh '''
-            cd weathesantonixrapp/db
+            cd weatherapp/db
             docker build -t santonix/weatherapp-db:${BUILD_NUMBER} .
                 '''
             }
