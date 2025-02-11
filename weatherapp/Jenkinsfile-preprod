@@ -123,7 +123,7 @@ pipeline {
 	          ]) {
 
 	            sh '''
-cat <<EOF > /home/bonny/docker-compose.yml
+cat <<EOF > /home/jenkins/docker-compose.yml
   version: '3.5'
   services:
     db:
