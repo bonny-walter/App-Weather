@@ -22,7 +22,7 @@ pipeline {
        }
        stage ('checkout') {
           steps {
-            checkout scmGit(branches: [[name: 'dev']], extensions: [], userRemoteConfigs: [[credentialsId: 'git-jenkins-private-key', url: 'https://github.com/bonny-walter/App-Weather.git']])
+            checkout scmGit(branches: [[name: '**']], extensions: [], userRemoteConfigs: [[credentialsId: 'git-jenkins-private-key', url: 'https://github.com/bonny-walter/App-Weather.git']])
           }
         }
 
