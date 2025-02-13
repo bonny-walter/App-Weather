@@ -38,6 +38,10 @@ pipeline {
                              string(name: 'WEATHER',
                              defaultValue: '',
                             description: '''Enter the WEATHER  service tag with v example v1.1.0'''),
+
+                            string( name:(' DEPLOYMENT BRANCH'),
+                             defaultValue: '',
+                            description: '''Enter the branch name used to deploy'''),
                         ])
                     ])
                 }
