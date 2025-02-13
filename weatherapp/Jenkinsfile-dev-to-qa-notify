@@ -1,0 +1,118 @@
+
+pipeline {
+    agent any 
+  environment {
+		DOCKERHUB_CREDENTIALS=credentials('dockerhub-access-credentials')
+	}
+    options {
+        buildDiscarder(logRotator(numToKeepStr: '3'))
+        disableConcurrentBuilds()
+        timeout(time: 30, unit: 'MINUTES') 
+       
+      }
+    stages {
+        stage('Setup parameters') {
+            steps {
+                script {
+                    properties([
+                        parameters([
+                        choice(
+                              choices: ["Devops", "QA"], 
+                              name: 'NOTIFY'
+                           
+                                ),
+
+                             string(name: 'AUTH',
+                             defaultValue: '',
+                            description: '''Enter the AUTH service tag starting with v example v1.1.0 '''),
+
+
+                             string(name: 'DB',
+                             defaultValue: '',
+                            description: '''Enter the DB service tag with v example v1.1.0 '''),
+
+
+                             string(name: 'REDIS',
+                             defaultValue: '',
+                            description: '''Enter the REDIS  service tag with v example v1.1.0 '''),
+
+                             string(name: 'UI',
+                             defaultValue: '',
+                            description: '''Enter the UI  service tag with v example v1.1.0 '''),
+
+                             string(name: 'WEATHER',
+                             defaultValue: '',
+                            description: '''Enter the WEATHER  service tag with v example v1.1.0'''),
+                        ])
+                    ])
+                }
+            }
+        }
+
+
+
+    stage('check entry') {
+
+			steps {
+				sh ''' 
+                bash weatherapp/qa.sh $AUTH $DB $REDIS  $UI $WEATHER 
+                '''
+			}
+		}
+
+  //  stage('notify Development team ') {
+    //  when{      
+      //    expression {
+        //    env.NOTIFY == 'qa' }
+          
+          //  }
+           // steps {
+             //   sh '''
+            // sleep 10 
+            // failed
+              //  '''
+           // }
+       // }
+
+
+    stage('notify QA Team ') {
+      when{      
+          expression {
+            env.NOTIFY == 'QA' }
+          
+            }
+            steps {
+                sh '''
+             sleep 10 
+
+                '''
+            }
+        }
+
+
+}
+
+
+
+   post {
+   
+   success {
+      slackSend (channel: '#QA-team', color: 'good', message: " images tagv1.0.0 are available on docker registry, Application The_Weather_app  with  tag name\n auth:$AUTH\n   redis:$REDIS\n  db:$DB\n   ui:$UI\n   weather:$WEATHER\n   :  Branch name  <<${env.BRANCH_NAME}>>  Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+    
+    }
+
+    
+
+
+    cleanup {
+      deleteDir()
+    }
+}
+
+
+
+
+
+
+}
+
