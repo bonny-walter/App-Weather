@@ -246,7 +246,7 @@ pipeline {
                 ls -l
             sleep 10
 #!/bin/bash
-ip_address=$(curl -s https://api.ipify.org ; echo)
+ip_address=$(hostname -I | awk '{print$1}' ; echo)
 ip_port=3000
 curl http://$ip_address:$ip_port/login | grep 'login'
 
