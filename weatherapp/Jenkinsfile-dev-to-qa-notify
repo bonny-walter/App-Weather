@@ -97,7 +97,7 @@ pipeline {
    post {
    
    success {
-      slackSend (channel: '#QA-team', color: 'good', message: " images tagv1.0.0 are available on docker registry, Application The_Weather_app  with  tag name\n auth:$AUTH\n   redis:$REDIS\n  db:$DB\n   ui:$UI\n   weather:$WEATHER\n   :  Branch name  <<${env.BRANCH_NAME}>>  Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+      slackSend (channel: '#testing-alerts', color: 'good', message: " images tagv1.0.0 are available on docker registry, Application The_Weather_app  with  tag name\n auth:$AUTH\n   redis:$REDIS\n  db:$DB\n   ui:$UI\n   weather:$WEATHER\n   :  Branch name  <<${env.BRANCH_NAME}>>  Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
     
     }
 
