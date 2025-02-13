@@ -67,7 +67,7 @@ pipeline {
                 sh '''
              git config --global user.email "jofranco1203@gmail.com"
              git config --global user.name "bonny"
-            cd weatherapp
+            cd App-Weather/weatherapp
             git tag -a v$TAG_NUMBER   -m "$COMMIT_MESSAGE"
             git push origin v$TAG_NUMBER
 
